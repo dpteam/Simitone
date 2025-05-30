@@ -1,0 +1,38 @@
+name: Windows build
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-2019 #latest
+    env:
+      POWERSHELL_TELEMETRY_OPTOUT: 1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+      - name: Protobuild
+        working-directory: FreeSO/Other/libs/FSOMonoGame
+        run: ./protobuild --generate
+      - name: Restore
+        run: |
+          nuget restore Client/Simitone/Simitone.sln
+          nuget restore FreeSO/TSOClient/FreeSO.sln
+          cd FreeSO/TSOClient/FSO.SimAntics.JIT.Roslyn
+          dotnet restore
+      - name: Build
+        run: msbuild /restore /t:Simitone_Windows "/p:Configuration=Release;OutDir=${env:GITHUB_WORKSPACE}/artifacts" Client/Simitone/Simitone.sln
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Simitone${{ runner.os }}
+          path: artifacts
+          if-no-files-found: error
