@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: windows-2019 #latest
+    runs-on: windows-latest
     env:
       POWERSHELL_TELEMETRY_OPTOUT: 1
     steps:
